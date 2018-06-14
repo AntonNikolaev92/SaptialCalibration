@@ -137,54 +137,11 @@ function btnLoadFile_Callback(hObject, eventdata, handles)
 % hObject    handle to btnLoadFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global iFrame nFrames fhData Imax LinkFM H0 mark1 mark2 mark3 iMark1 iMark2 iMark3 
-
-H0 = eye(4);
-%H0(2,4) = 27.98;
-%H0(3,4) = 88.588;
-
-path = uigetdir( );
-fileNames = dir([path,'/*.mat']);
-nFileNames = size(fileNames); nFileNames = nFileNames(1);
-fhDataLoad = load([path,'\',fileNames(1).name]);
-fhData = fhDataLoad.fhData;
-fhData.img.frames = zeros(length(fhData.img.liny), length(fhData.img.linx), 200*nFileNames) ;
-fhData.pos.frames = zeros(4, 4, 200*nFileNames) ;
-fhData.img.n = 0;
-if nFileNames(1)>1
-    for iFileName = 1:nFileNames
-        start = fhData.img.n+1;
-        stop = fhData.img.n+fhDataLoad.fhData.img.n;
-        fhDataLoad = load([path,'\',fileNames(iFileName).name]);
-        fileNames(iFileName).name
-        fhData.img.frames(:,:,start:stop) =  fhDataLoad.fhData.img.frames;
-        fhData.img.n = fhData.img.n + fhDataLoad.fhData.img.n;
-        fhData.pos.frames(:,:,start:stop) =  fhDataLoad.fhData.pos.frames;
-        fhData.pos.n = fhData.pos.n + fhDataLoad.fhData.pos.n;
-    end
-end
+global iFrame nFrames Hws I grid
+filePath = 'D:\data\AmfiTrackCalibration';
+[ Hws, I, nFrames ] = loadData(filePath);
+[ grid.x, grid.y, grid.z] = linearArrayGridMsensor(
 iFrame = 1;
-nFrames = fhData.img.n;
-Imax = max(max( fhData.img.frames(:,:,iFrame)))/5;
-% redrawAxes
-strStatus = sprintf('%i of %i frames', iFrame, nFrames);
-set(handles.txtFrames, 'string', strStatus);
-axes(handles.axesFrame);
-colormap(gray);
-imagesc(fhData.img.linx, fhData.img.liny, fhData.img.frames(:,:,iFrame),[0,Imax]); axis equal;
-LinkFM = zeros(3,nFrames);
-mark1 = [];
-mark1.pos = zeros(4,100);
-mark1.frames = zeros(4,4,100);
-iMark1 = 0;
-mark2 = [];
-mark2.pos = zeros(4,100);
-mark2.frames = zeros(4,4,100);
-iMark2 = 0;
-mark3 = [];
-mark3.pos = zeros(4,100);
-mark3.frames = zeros(4,4,100);
-iMark3 = 0;
 
 
 
