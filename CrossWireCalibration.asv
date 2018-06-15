@@ -1,30 +1,4 @@
 function varargout = CrossWireCalibration(varargin)
-% CROSSWIRECALIBRATION MATLAB code for CrossWireCalibration.fig
-%      CROSSWIRECALIBRATION, by itself, creates a new CROSSWIRECALIBRATION or raises the existing
-%      singleton*.
-%
-%      H = CROSSWIRECALIBRATION returns the handle to a new CROSSWIRECALIBRATION or the handle to
-%      the existing singleton*.
-%
-%      CROSSWIRECALIBRATION('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in CROSSWIRECALIBRATION.M with the given input arguments.
-%
-%      CROSSWIRECALIBRATION('Property','Value',...) creates a new CROSSWIRECALIBRATION or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before CrossWireCalibration_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to CrossWireCalibration_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help CrossWireCalibration
-
-% Last Modified by GUIDE v2.5 02-May-2018 16:36:28
-
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -46,223 +20,59 @@ end
 
 % --- Executes just before CrossWireCalibration is made visible.
 function CrossWireCalibration_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to CrossWireCalibration (see VARARGIN)
-
-global fhData H0 mark1 mark2 mark3 iMark1 iMark2 iMark3 LinkFM
-% Choose default command line output for CrossWireCalibration
-handles.output = hObject;
-
-% Update handles structure
-guidata(hObject, handles);
-H0 = eye(4);
-%H0(2,4) = 27.98;
-%H0(3,4) = 88.588;
-%{
-mark1.p = zeros(4,100);
-mark1.frames = zeros(4,4,100);
-iMark1 = 0;
-mark2.p = zeors(4,100);
-mark2.frames = zeros(4,4,100);
-iMark2 = 0;
-mark3.p = zeors(4,100);
-mark3.frames = zeros(4,4,100);
-iMark3 = 0;
-LinkFM = [];
-%}
-% UIWAIT makes CrossWireCalibration wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+global fLoaded
+handles.output = hObject; % Choose default command line output for CrossWireCalibration
+guidata(hObject, handles); % Update handles structure
+addpath(genpath('D:\nav\libs\matlab')); % add libraries
+fLoaded = false;
 
 
 % --- Outputs from this function are returned to the command line.
 function varargout = CrossWireCalibration_OutputFcn(hObject, eventdata, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Get default command line output from handles structure
-varargout{1} = handles.output;
+varargout{1} = handles.output;% Get default command line output from handles structure
 
 
 % --- Executes on button press in btnPrev.
 function btnPrev_Callback(hObject, eventdata, handles)
-% hObject    handle to btnPrev (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global iFrame nFrames fhData Imax
-iFrame = iFrame-1;
-if iFrame == 0, iFrame = nFrames; end;
+moveFrame('prev');
+guiUpdate(handles);
 
-strStatus = sprintf('%i of %i frames', iFrame, nFrames);
-set(handles.txtFrames, 'string', strStatus);
-axes(handles.axesFrame);
-colormap(gray);
-imagesc(fhData.img.linx, fhData.img.liny, fhData.img.frames(:,:,iFrame),[0,Imax/2]); axis equal;
-
-% --- Executes on button press in btnNext.
 function btnNext_Callback(hObject, eventdata, handles)
-% hObject    handle to btnNext (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global iFrame nFrames fhData Imax LinkFM iMark1 mark1 iMark2 mark2 iMark3 mark3 
-iFrame = iFrame+1;
-if iFrame > nFrames, iFrame = 1; end;
+moveFrame('next');
+guiUpdate(handles);
 
-strStatus = sprintf('%i of %i frames', iFrame, nFrames);
-set(handles.txtFrames, 'string', strStatus);
-axes(handles.axesFrame);
-colormap(gray);
-imagesc(fhData.img.linx, fhData.img.liny, fhData.img.frames(:,:,iFrame),[0,Imax/2]); axis equal;
-
-hold on
-if LinkFM(1,iFrame)>0
-    p = mark1.pos(:,(LinkFM(1,iFrame)));
-    plot(p(1), p(2), 'or');
-end
-if LinkFM(2,iFrame)>0
-    p = mark2.pos(:,(LinkFM(2,iFrame)));
-    plot(p(1), p(2), 'og');
-end
-if LinkFM(3,iFrame)>0
-    p = mark3.pos(:,(LinkFM(3,iFrame)));
-    plot(p(1), p(2), 'or');
-end
-
-% --- Executes on button press in btnLoadFile.
-function btnLoadFile_Callback(hObject, eventdata, handles)
-% hObject    handle to btnLoadFile (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global iFrame nFrames Hws I grid
-filePath = 'D:\data\AmfiTrackCalibration';
-[ Hws, I, grid, nFrames ] = loadData(filePath);
-iFrame = 1;
-
+function btnLoadFile_Callback(hObject, eventdata, handles)                  
+global iFrame nFrames Hws I linSpace fLoaded mark1 mark2 mark3
+fpath = 'D:\data\AmfiTrackCalibration';
+loadFile(fpath);
+guiUpdate(handles);
 
 
 % --- Executes on button press in btnSave.
 function btnSave_Callback(hObject, eventdata, handles)
-% hObject    handle to btnSave (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
+saveMarkers()
 
 % --- Executes on button press in btnMark1.
 function btnMark1_Callback(hObject, eventdata, handles)
-% hObject    handle to btnMark1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global fhData iFrame mark1 iMark1 LinkFM
-r = getrect(handles.axesFrame);
-dx = fhData.img.linx(2) - fhData.img.linx(1);
-dy = fhData.img.liny(2) - fhData.img.liny(1);
-r(1) = floor( (r(1)-fhData.img.linx(1))/dx);
-r(2) = floor( (r(2)-fhData.img.liny(1))/dy);
-r(3) = floor( r(3)/dx);
-r(4) = floor( r(4)/dy);
-frame = fhData.img.frames(:,:,iFrame);
-rio = frame( r(2):(r(2)+r(4)), r(1):(r(1)+r(3)) );
-[ymax,j] = max(rio);
-[xmax,i] = max(ymax);
-xmax = (i+r(1))*dx + fhData.img.linx(1);
-ymax = (j(i)+r(2))*dy + fhData.img.liny(1);
-axes(handles.axesFrame);
-hold on
-plot(xmax,ymax,'or');
-hold off
-
-iMark1 = iMark1+1;
-mark1.pos(:,iMark1) = [xmax, ymax, 0, 1];
-mark1.frames(:,:,iMark1) = fhData.pos.frames(:,:,iFrame);
-LinkFM(1,iFrame) = iMark1;
+putMarker(1, handles);
+guiUpdate(handles);
 
 
 
 % --- Executes on button press in btnUnmark.
 function btnUnmark_Callback(hObject, eventdata, handles)
-% hObject    handle to btnUnmark (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global fhData iFrame mark1 iMark1 mark2 iMark2 mark3 iMark3 LinkFM
-
-if LinkFM(1,iFrame)>0
-    mark1( LinkFM(1,iFrame) ) = [];
-    LinkFM(1,iFrame) = 0;
-    iMark1  = iMark1-1;
-end
-if LinkFM(2,iFrame)>0
-    mark2( LinkFM(2,iFrame) ) = [];
-    LinkFM(2,iFrame) = 0;
-    iMark2  = iMark2-1;
-end
-if LinkFM(3,iFrame)>0
-    mark3( LinkFM(3,iFrame) ) = [];
-    LinkFM(3,iFrame) = 0;
-    iMark3  = iMark3-1;
-end
+removeAllMarkers();
+guiUpdate(handles);
 
 % --- Executes on button press in btnMark2.
 function btnMark2_Callback(hObject, eventdata, handles)
-% hObject    handle to btnMark2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global fhData iFrame mark2 iMark2 LinkFM
-r = getrect(handles.axesFrame);
-dx = fhData.img.linx(2) - fhData.img.linx(1);
-dy = fhData.img.liny(2) - fhData.img.liny(1);
-r(1) = floor( (r(1)-fhData.img.linx(1))/dx);
-r(2) = floor( (r(2)-fhData.img.liny(1))/dy);
-r(3) = floor( r(3)/dx);
-r(4) = floor( r(4)/dy);
-frame = fhData.img.frames(:,:,iFrame);
-rio = frame( r(2):(r(2)+r(4)), r(1):(r(1)+r(3)) );
-[ymax,j] = max(rio);
-[xmax,i] = max(ymax);
-xmax = (i+r(1))*dx + fhData.img.linx(1);
-ymax = (j(i)+r(2))*dy + fhData.img.liny(1);
-axes(handles.axesFrame);
-hold on
-plot(xmax,ymax,'og');
-hold off
-
-iMark2 = iMark2+1;
-mark2.pos(:,iMark2) = [xmax, ymax, 0, 1];
-mark2.frames(:,:,iMark2) = fhData.pos.frames(:,:,iFrame);
-LinkFM(2,iFrame) = iMark2;
+putMarker(2, handles);
+guiUpdate(handles);
 
 % --- Executes on button press in btnMark3.
 function btnMark3_Callback(hObject, eventdata, handles)
-% hObject    handle to btnMark3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global fhData iFrame  mark3 iMark3 LinkFM
-r = getrect(handles.axesFrame);
-dx = fhData.img.linx(2) - fhData.img.linx(1);
-dy = fhData.img.liny(2) - fhData.img.liny(1);
-r(1) = floor( (r(1)-fhData.img.linx(1))/dx);
-r(2) = floor( (r(2)-fhData.img.liny(1))/dy);
-r(3) = floor( r(3)/dx);
-r(4) = floor( r(4)/dy);
-frame = fhData.img.frames(:,:,iFrame);
-rio = frame( r(2):(r(2)+r(4)), r(1):(r(1)+r(3)) );
-[ymax,j] = max(rio);
-[xmax,i] = max(ymax);
-xmax = (i+r(1))*dx + fhData.img.linx(1);
-ymax = (j(i)+r(2))*dy + fhData.img.liny(1);
-axes(handles.axesFrame);
-hold on
-plot(xmax,ymax,'ob');
-hold off
-
-mark3.pos(:,iMark3) = [xmax, ymax, 0, 1];
-mark3.frames(:,:,iMark3) = fhData.pos.frames(:,:,iFrame);
-iMark3 = iMark3 + 1;
-LinkFM(3,iFrame) = iMark3;
-
+putMarker(3, handles);
+guiUpdate(handles);
 
 % --- Executes on button press in btnCalib.
 function btnCalib_Callback(hObject, eventdata, handles)
@@ -271,8 +81,136 @@ function btnCalib_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in btnOpen3D.
-function btnOpen3D_Callback(hObject, eventdata, handles)
-% hObject    handle to btnOpen3D (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% --- Executes on button press in btnShowAllPlanes3D.
+function btnShowAllPlanes3D_Callback(hObject, eventdata, handles)
+showAllPlanes();
+
+% --- Executes on button press in btnShowAllPoints3D.
+function btnShowAllPoints3D_Callback(hObject, eventdata, handles)
+showAllPoints();
+
+%------------Application functions-----------------------------------------
+function guiUpdate(handles)
+    global iFrame nFrames I mark1 mark2 mark3 linSpace
+    if nFrames == 0,    return; end;
+    axes(handles.axesFrame);
+    %colormap(gray);
+    imagesc(linSpace.y, linSpace.x, I(:,:,iFrame));
+    hold on
+    plot(mark1(2,iFrame), mark1(1,iFrame), '*g');
+    plot(mark2(2,iFrame), mark2(1,iFrame),  '*y');
+    plot(mark3(2,iFrame), mark3(1,iFrame),  '*r');
+    hold off
+    xlabel('y (m)'); ylabel('x (m)'); 
+    str = sprintf('frame %d of %d', iFrame, nFrames);
+    set(handles.txtFrames,'string', str);
+
+function moveFrame(strDirection)
+    global iFrame nFrames
+    if nFrames == 0,    return; end;
+    if strcmp(strDirection, 'next')
+        iFrame = iFrame+1;
+        if iFrame>nFrames, iFrame = 1; end;
+    end
+    if strcmp(strDirection, 'prev')
+        iFrame = iFrame-1;
+        if iFrame == 0, iFrame = nFrames; end;
+    end
+
+function loadFile(filePath)
+    global iFrame nFrames Hws I linSpace mark1 mark2 mark3 fpath
+    fpath = filePath;
+    [ Hws, I, nFrames ] = loadData(fpath);
+    if nFrames == 0, return; end;
+    [ nSamples, nElements ] = size(I(:,:,1));
+    [ gridx, gridy, ~] = linearArrayGridMsensor(0.1953e-3, nElements, 7.813e+6, 1540, nSamples); 
+    linSpace.x = gridx(1:nSamples, 1);
+    linSpace.y = gridy(1,1:nElements);
+
+    fullFileName = [ fpath, '\', 'MARK','.mat' ];
+    if exist(fullFileName, 'file') == 2
+        load(fullFileName);
+        mark1 = MARK{1};
+        mark2 = MARK{2};
+        mark3 = MARK{3};
+        clear('MARK');
+    else
+        mark1 = ones(4,nFrames)*NaN;
+        mark2 = ones(4,nFrames)*NaN;
+        mark3 = ones(4,nFrames)*NaN;
+    end
+    iFrame = 1;
+    
+function putMarker(mark, handles)
+    global mark1 mark2 mark3 iFrame nFrames
+    if mark<1 && mark>3,        return; end;
+    if nFrames == 0,            return; end;
+    [x y] = getpts(handles.axesFrame);
+    p = [ y(1) x(1) 0 1]'; 
+    switch mark
+        case 1
+            mark1(:,iFrame) = p;
+        case 2
+            mark2(:,iFrame) = p;
+        case 3
+            mark3(:,iFrame) = p;
+    end
+    
+function removeAllMarkers()
+    global mark1 mark2 mark3 iFrame nFrames
+    if nFrames == 0,    return; end;
+    mark1(:,iFrame) = ones(4,1)*NaN;
+    mark2(:,iFrame) = ones(4,1)*NaN;
+    mark3(:,iFrame) = ones(4,1)*NaN;
+    
+function saveMarkers
+    global fpath mark1 mark2 mark3 nFrames
+    if nFrames == 0, return; end;
+    MARK = cell(3);
+    MARK{1} = mark1;
+    MARK{2} = mark2;
+    MARK{3} = mark3;
+    fullFileName = [ fpath, '\', 'MARK','.mat' ];
+    save(fullFileName,'-v7.3', 'MARK');
+    
+function showAllPoints()
+    global Hws mark1 mark2 mark3 nFrames
+    if nFrames == 0, return; end;
+    p1 = ones(4,nFrames);
+    p2 = ones(4,nFrames);
+    p3 = ones(4,nFrames);
+    for i = 1:nFrames
+        p1(:,i) = Hws(:,:,i)*mark1(:,i);
+        p2(:,i) = Hws(:,:,i)*mark2(:,i);
+        p3(:,i) = Hws(:,:,i)*mark3(:,i);
+    end
+    figure();
+    subplot(2,2,1); plot3(p1(1,:), p1(2,:), p1(3,:), '*g', p2(1,:), p2(2,:), p2(3,:), '*y', p3(1,:), p3(2,:), p3(3,:), '*r'); xlabel('x(m)'); ylabel('y(m)'); zlabel('z(m)'); grid on; 
+    subplot(2,2,2); plot(p1(1,:), p1(2,:), '*g', p2(1,:), p2(2,:), '*y', p3(1,:), p3(2,:), '*r'); xlabel('x(m)'); ylabel('y(m)'); grid on;
+    subplot(2,2,3); plot(p1(1,:), p1(3,:), '*g', p2(1,:), p2(3,:), '*y', p3(1,:), p3(3,:), '*r'); xlabel('x(m)'); ylabel('z(m)'); grid on;
+    subplot(2,2,4); plot(p1(2,:), p1(3,:), '*g', p2(2,:), p2(3,:), '*y', p3(2,:), p3(3,:), '*r'); xlabel('y(m)'); ylabel('z(m)'); grid on;
+    
+function showAllPlanes()
+        global I Hws mark1 mark2 mark3 nFrames linSpace
+        if nFrames == 0, return; end;
+        p1 = ones(4,nFrames);
+        p2 = ones(4,nFrames);
+        p3 = ones(4,nFrames);
+        w = max(linSpace.x) - min(linSpace.x);
+        h = max(linSpace.y) - min(linSpace.y);
+        T = eye(4); T(4,1) = w/2;
+        R = getRotationMetrix(0,0,-90);
+        Hcorr = T*R;
+        figure();
+        
+        showImageInSpace(I(:,:,1), w, h, Hws(:,:,1));
+        hold on
+        for i = 1:nFrames
+            p1 = Hws(:,:,i)*mark1(:,i);
+            p2 = Hws(:,:,i)*mark2(:,i);
+            p3 = Hws(:,:,i)*mark3(:,i);
+            showImageInSpace(I(:,:,i), w, h, Hws(:,:,i)*Hcorr);
+            plot3(p1(1), p1(2),p1(3),'*g', p2(1),p2(2),p2(3),'*y', p3(1), p3(2),p3(3),'*r');
+        end
+        hold off
+        grid on
