@@ -32,7 +32,7 @@ for i = 1:length(imgfnames)
         load( [ filePath, '\', imgfname, '.mat'] );
         I(:,:,iFrame) = USIMG(:,65:192); % correct to I(:,:,iFrame) for the normal acquisition
         load( [ filePath, '\', posfname, '.mat'] ); 
-        T = eye(4); T(4,:) = USPOS.t(:,1);
+        T = eye(4); T(1:3,4) = USPOS.t(1:3,1)*1e-3;
         R = eye(4); R(1:3,1:3) = qGetR(USPOS.q(:,1));
         H(:,:,iFrame) = T*R;
     end

@@ -22,7 +22,8 @@ end
 function CrossWireCalibration_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject; % Choose default command line output for CrossWireCalibration
 guidata(hObject, handles); % Update handles structure
-addpath(genpath('E:\libs\matlab')); % add libraries
+% addpath(genpath('E:\libs\matlab')); % add libraries
+addpath(genpath('D:\nav\libs\matlab')); % add libraries
 
 
 % --- Outputs from this function are returned to the command line.
@@ -40,7 +41,9 @@ moveFrame('next');
 guiUpdate(handles);
 
 function btnLoadFile_Callback(hObject, eventdata, handles)                  
-fpath = 'E:\data\AmfiTrackCalibration150718';
+%fpath = 'E:\data\AmfiTrackCalibration150718';
+%fpath = 'D:\data\AmfiTrackCalibration150718';
+fpath = 'I:\WORKDIR\Anton\data\AmfiTrackCalibration18062018';
 loadFile(fpath);
 guiUpdate(handles);
 
@@ -114,13 +117,13 @@ function moveFrame(strDirection)
 
 function loadFile(filePath)
     global iFrame nFrames Hws I linSpace mark1 mark2 mark3 fpath Hst
-    Hst = eye(4); Hst(1,4) = 88.608e-3; Hst(3,4) = 18.386e-3;
+    Hst = eye(4); %Hst(1,4) = 88.608e-3; Hst(3,4) = 18.386e-3;
     fpath = filePath;
     [ Hws, I, nFrames ] = loadData(fpath);
     if nFrames == 0, return; end;
     [ nSamples, nElements ] = size(I(:,:,1));
     [ gridx, gridy, ~] = linearArrayGridMsensor(0.1953e-3, nElements, 7.813e+6, 1540, nSamples); 
-    linSpace.x = gridx(1:nSamples, 1);
+    linSpace.x = gridx(1:nSamples, 1)';
     linSpace.y = gridy(1,1:nElements);
 
     fullFileName = [ fpath, '\', 'MARK','.mat' ];
@@ -209,11 +212,11 @@ function showAllPlanes()
             p2 = Hws(:,:,i)*Hst*mark2(:,i);
             p3 = Hws(:,:,i)*Hst*mark3(:,i);
             Iscl = I(:,:,i)/( max(max(I(:,:,i))) - min(min(I(:,:,i))) )*255;
-            showImageInSpace(fliplr(Iscl), h, w, Hws(:,:,i)*Hst*Hcorr);
+            showImageInSpace(Iscl, h, w, Hws(:,:,i)*Hst*Hcorr);
             plot3(p1(1), p1(2),p1(3),'*g', p2(1),p2(2),p2(3),'*y', p3(1), p3(2),p3(3),'*r');
         end
         hold off
-        grid on; xlabel('x(m)'); ylabel('y(m)'); zlabel('z(m)');
+        grid on; xlabel('x(m)'); ylabel('y(m)'); zlabel('z(m)'); axis equal;
 
 function res = f1(x)
         global Hws nFrames mark1
